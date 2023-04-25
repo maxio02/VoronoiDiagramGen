@@ -1,4 +1,4 @@
-import tkinter
+import tkinter as tk
 from dataclasses import dataclass
 import random
 
@@ -46,14 +46,31 @@ def generate_all_edges(points: list[point]) -> list[edge]:
             edges.append(edge(point1, point2))
     return edges
 
+def generate_new_pattern_diagram():
+    
+    canvas.delete('all')
+    points = generate_points(int(entry.get()))
+    edges = generate_all_edges(points)
+    draw_points(points)
+    draw_edges(edges)
+    canvas.pack()
 
-window = tkinter.Tk()
+window = tk.Tk()
 
-canvas = tkinter.Canvas(window, width=1600, height=900)
-points = generate_points(10)
-edges = generate_all_edges(points)
-draw_points(points)
-draw_edges(edges)
 
+canvas = tk.Canvas(window, width=1600, height=900)
 canvas.pack()
+
+
+
+button = tk.Button(window, text="Generate new pattern", command=generate_new_pattern_diagram)
+button.place(x=WIDTH-button.winfo_reqwidth()-10, y=HEIGHT-button.winfo_reqheight()-10)
+
+entry = tk.Entry(window,width=5)
+
+entry.place(x=WIDTH-button.winfo_x()-button.winfo_reqwidth()-50, y=HEIGHT-entry.winfo_reqheight()-10)
+
+
 window.mainloop()
+
+
