@@ -5,7 +5,7 @@ import heapq
 from bst import Node
 WIDTH = 1600
 HEIGHT = 900
-line_y = 1
+line_y = 500
 points = []
 
 
@@ -23,17 +23,17 @@ class edge:
 
 
 class arc:
-    def __init__(self, focus: point, apex: point):
-        self.focus = focus
+    def __init__(self, apex: point):
         self.apex = apex
 
     # apex (h, k)
     # focus (h, k + p)
     def f(self, x):
-        h = self.apex.x
-        k = self.apex.y
-        p = self.focus.y-k
-        return ((h**2-2*h*x+4*k*p+x**2)/4/p)
+        x1 = self.apex.x
+        y1 = self.apex.y
+        
+        return (1/((2*(y1-line_y)))    *    ((x-x1)**2 + y1**2 - line_y**2))
+        #return ((x1**2  -  2*x1*x   +    4*y1*p+x**2)/4/p)
 
 
 def generate_points(n: int) -> list[point]:
@@ -78,18 +78,18 @@ def generate_all_edges(points: list[point]) -> list[edge]:
 def calc_parabolas(points:list[point], line: int):
     parabolas = []
     for pt in points:
-        parabolas.append(arc(pt, point(pt.x, pt.y-(pt.y-line), 1)))
+        parabolas.append(arc(pt))
     return parabolas
 
 
 def draw_parabolas(parabolas:list[arc]):
     for parabola in parabolas:
-        if parabola.focus.y < line_y:
-            for i in range(WIDTH):
+        if parabola.apex.y < line_y:
+            for i in range(0, WIDTH, 10):
                 x = i
                 y = parabola.f(x)
-                if y > 0 | i%2==0:
-                    canvas.create_line(x, y, x+2, parabola.f(x+2), fill='black')
+                if y > 0:
+                    canvas.create_line(x, y, x+10, parabola.f(x+10), fill='black')
 
 
 def draw(points):
