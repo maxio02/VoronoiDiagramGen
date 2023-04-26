@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import random
 import heapq
 from bst import Node
+from math import sqrt
+import itertools
 WIDTH = 1600
 HEIGHT = 900
 line_y = 500
@@ -26,8 +28,6 @@ class arc:
     def __init__(self, apex: point):
         self.apex = apex
 
-    # apex (h, k)
-    # focus (h, k + p)
     def f(self, x):
         x1 = self.apex.x
         y1 = self.apex.y
@@ -35,6 +35,37 @@ class arc:
         return (1/((2*(y1-line_y)))    *    ((x-x1)**2 + y1**2 - line_y**2))
         #return ((x1**2  -  2*x1*x   +    4*y1*p+x**2)/4/p)
 
+    def intersect(self, other):
+            x1 = self.apex.x
+            y1 = self.apex.y
+            x2 = other.apex.x
+            y2 = other.apex.y
+            
+            a1 = 1/(2*(y1-line_y))
+            b1 = -x1/(y1-line_y)
+            c1 = (x1**2 + y1**2 - line_y**2)/(2*(y1-line_y))
+            
+            a2 = 1/(2*(y2-line_y))
+            b2 = -x2/(y2-line_y)
+            c2 = (x2**2 + y2**2 - line_y**2)/(2*(y2-line_y))
+            
+            a = a1 - a2
+            b = b1 - b2
+            c = c1 - c2
+            
+            discriminant = b**2 - 4*a*c
+            
+            if discriminant < 0:
+                return []  
+            else:
+                x_intersects = [(-b + sqrt(discriminant)) / (2*a), (-b - sqrt(discriminant)) / (2*a)]
+                intersection_points = []
+                for x in x_intersects:
+                    y = self.f(x)
+                    if abs(y - other.f(x)) < 1e-6: 
+                        intersection_points.append(point(x, y,5))
+                return intersection_points
+                                                                
 
 def generate_points(n: int) -> list[point]:
     global points
@@ -45,10 +76,10 @@ def generate_points(n: int) -> list[point]:
     return points
 
 
-def draw_points(points: list[point]):
+def draw_points(points: list[point], color):
     for point in points:
         canvas.create_oval(point.x - point.radius, point.y-point.radius,
-                           point.x+point.radius, point.y+point.radius, fill='black')
+                           point.x+point.radius, point.y+point.radius, fill=color)
 
 
 def draw_edges(edges: list[edge]):
@@ -78,7 +109,8 @@ def generate_all_edges(points: list[point]) -> list[edge]:
 def calc_parabolas(points:list[point], line: int):
     parabolas = []
     for pt in points:
-        parabolas.append(arc(pt))
+        if line_y > pt.y:
+            parabolas.append(arc(pt))
     return parabolas
 
 
@@ -91,12 +123,21 @@ def draw_parabolas(parabolas:list[arc]):
                 if y > 0:
                     canvas.create_line(x, y, x+10, parabola.f(x+10), fill='black')
 
+def calc_intersection_points(parabolas:list[arc]):
+    intersection_points = []
+    pairs = list(itertools.combinations(parabolas, 2))
+
+    for pair in pairs:
+        intersection_points.extend(pair[0].intersect(pair[1]))
+    return intersection_points
 
 def draw(points):
     canvas.delete('all')
-    draw_points(points)
+    draw_points(points, 'red')
     parabolas = calc_parabolas(points, line_y)
     draw_parabolas(parabolas)
+    intersection_points = calc_intersection_points(parabolas)
+    draw_points(intersection_points, 'black')
     draw_line()
 
 def sort_points_by(points: list[point], axis: str) -> list[point]:
@@ -135,9 +176,9 @@ def generate_new_pattern_diagram():
         edges = generate_all_edges(points)'''
 
 
-    # Loop through the range of x values, plot each point on the canvas
+    
     draw(points)
-    # draw_edges(edges)
+    
     canvas.pack()
 
 
